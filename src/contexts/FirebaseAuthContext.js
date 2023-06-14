@@ -1,17 +1,24 @@
 import { createContext, useEffect, useReducer, useState } from "react";
 
-import firebase from "firebase/app";
-import "firebase/auth";
-import "firebase/firestore";
+import { initializeApp } from "firebase/app";
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  getAuth,
+} from "firebase/auth";
+import { getFirestore, getDoc, setDoc, doc } from "firebase/firestore";
 
 import { firebaseConfig } from "../config";
 
 const INITIALIZE = "INITIALIZE";
+const app = initializeApp(firebaseConfig);
+const fireauth = getAuth(app);
+const firestore = getFirestore(app);
 
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-  firebase.firestore();
-}
+// if (!firebase.apps.length) {
+//   firebase.initializeApp(firebaseConfig);
+//   firebase.firestore();
+// }
 
 const initialState = {
   isAuthenticated: false,
@@ -41,11 +48,10 @@ function AuthProvider({ children }) {
 
   useEffect(
     () =>
-      firebase.auth().onAuthStateChanged((user) => {
+      fireauth.onAuthStateChanged((user) => {
         if (user) {
-          const docRef = firebase.firestore().collection("users").doc(user.uid);
-          docRef
-            .get()
+          // const col = collection(firestore, "users", );
+          getDoc(doc(firestore, "users", user.uid))
             .then((doc) => {
               if (doc.exists) {
                 setProfile(doc.data());
@@ -70,45 +76,38 @@ function AuthProvider({ children }) {
   );
 
   const signIn = (email, password) =>
-    firebase.auth().signInWithEmailAndPassword(email, password);
+    signInWithEmailAndPassword(fireauth, email, password);
 
   const signInWithGoogle = () => {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    return firebase.auth().signInWithPopup(provider);
+    const provider = new fireauth.GoogleAuthProvider();
+    return fireauth.signInWithPopup(provider);
   };
 
   const signInWithFaceBook = () => {
-    const provider = new firebase.auth.FacebookAuthProvider();
-    return firebase.auth().signInWithPopup(provider);
+    const provider = new fireauth.FacebookAuthProvider();
+    return fireauth.signInWithPopup(provider);
   };
 
   const signInWithTwitter = () => {
-    const provider = new firebase.auth.TwitterAuthProvider();
-    return firebase.auth().signInWithPopup(provider);
+    const provider = new fireauth.TwitterAuthProvider();
+    return fireauth.signInWithPopup(provider);
   };
 
   const signUp = (email, password, firstName, lastName) =>
-    firebase
-      .auth()
-      .createUserWithEmailAndPassword(email, password)
-      .then((res) => {
-        firebase
-          .firestore()
-          .collection("users")
-          .doc(res.user?.uid)
-          .set({
-            uid: res.user?.uid,
-            email,
-            displayName: `${firstName} ${lastName}`,
-          });
+    createUserWithEmailAndPassword(fireauth, email, password).then((res) => {
+      setDoc(doc(firestore, "users", res.user?.uid), {
+        uid: res.user?.uid,
+        email,
+        displayName: `${firstName} ${lastName}`,
       });
+    });
 
   const signOut = async () => {
-    await firebase.auth().signOut();
+    await fireauth().signOut();
   };
 
   const resetPassword = async (email) => {
-    await firebase.auth().sendPasswordResetEmail(email);
+    await fireauth().sendPasswordResetEmail(email);
   };
 
   const auth = { ...state.user };
