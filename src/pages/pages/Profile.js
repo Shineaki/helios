@@ -4,6 +4,7 @@ import { withTheme } from "@emotion/react";
 import { NavLink } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { Bar } from "react-chartjs-2";
+import useAuth from "../../hooks/useAuth";
 
 import {
   Briefcase,
@@ -107,7 +108,32 @@ const TableWrapper = styled.div`
   max-width: calc(100vw - ${(props) => props.theme.spacing(12)});
 `;
 
+function AnonymousProfile() {
+  return (
+    <>
+      <Avatar alt="Lucy Designer" src="/static/img/avatars/avatar-1.jpg" />
+      <Typography variant="body2" component="div" gutterBottom>
+        <Box fontWeight="fontWeightMedium">Lucy Designer</Box>
+        <Box fontWeight="fontWeightRegular">Lead Developer</Box>
+      </Typography>
+    </>
+  );
+}
+
+function UserProfile(props) {
+  return (
+    <>
+      <Avatar alt={props.user.displayName} src={props.user.avatar} />
+      <Typography variant="body2" component="div" gutterBottom>
+        <Box fontWeight="fontWeightMedium">{props.user.displayName}</Box>
+        <Box fontWeight="fontWeightRegular">Lead Developer</Box>
+      </Typography>
+    </>
+  );
+}
+
 function Details() {
+  const { user } = useAuth();
   return (
     <Card mb={6}>
       <CardContent>
@@ -118,11 +144,9 @@ function Details() {
         <Spacer mb={4} />
 
         <Centered>
-          <Avatar alt="Lucy Lavender" src="/static/img/avatars/avatar-1.jpg" />
-          <Typography variant="body2" component="div" gutterBottom>
-            <Box fontWeight="fontWeightMedium">Lucy Lavender</Box>
-            <Box fontWeight="fontWeightRegular">Lead Developer</Box>
-          </Typography>
+          {user && <UserProfile user={user} />}
+          {!user && <AnonymousProfile />}
+          {/* <AnonymousProfile /> */}
 
           <Button mr={2} variant="contained" color="primary" size="small">
             Follow

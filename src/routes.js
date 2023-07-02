@@ -128,11 +128,19 @@ const routes = [
     children: [
       {
         path: "default",
-        element: <Default />,
+        element: (
+          <AuthGuard>
+            <Default />
+          </AuthGuard>
+        ),
       },
       {
         path: "analytics",
-        element: <Analytics />,
+        element: (
+          <AuthGuard>
+            <Analytics />
+          </AuthGuard>
+        ),
       },
       {
         path: "saas",

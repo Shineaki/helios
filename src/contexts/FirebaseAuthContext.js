@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   getAuth,
+  sendPasswordResetEmail,
 } from "firebase/auth";
 import { getFirestore, getDoc, setDoc, doc } from "firebase/firestore";
 
@@ -14,11 +15,6 @@ const INITIALIZE = "INITIALIZE";
 const app = initializeApp(firebaseConfig);
 const fireauth = getAuth(app);
 const firestore = getFirestore(app);
-
-// if (!firebase.apps.length) {
-//   firebase.initializeApp(firebaseConfig);
-//   firebase.firestore();
-// }
 
 const initialState = {
   isAuthenticated: false,
@@ -78,21 +74,6 @@ function AuthProvider({ children }) {
   const signIn = (email, password) =>
     signInWithEmailAndPassword(fireauth, email, password);
 
-  const signInWithGoogle = () => {
-    const provider = new fireauth.GoogleAuthProvider();
-    return fireauth.signInWithPopup(provider);
-  };
-
-  const signInWithFaceBook = () => {
-    const provider = new fireauth.FacebookAuthProvider();
-    return fireauth.signInWithPopup(provider);
-  };
-
-  const signInWithTwitter = () => {
-    const provider = new fireauth.TwitterAuthProvider();
-    return fireauth.signInWithPopup(provider);
-  };
-
   const signUp = (email, password, firstName, lastName) =>
     createUserWithEmailAndPassword(fireauth, email, password).then((res) => {
       setDoc(doc(firestore, "users", res.user?.uid), {
@@ -103,11 +84,11 @@ function AuthProvider({ children }) {
     });
 
   const signOut = async () => {
-    await fireauth().signOut();
+    await fireauth.signOut();
   };
 
   const resetPassword = async (email) => {
-    await fireauth().sendPasswordResetEmail(email);
+    await sendPasswordResetEmail(fireauth, email);
   };
 
   const auth = { ...state.user };
@@ -126,9 +107,6 @@ function AuthProvider({ children }) {
         },
         signIn,
         signUp,
-        signInWithGoogle,
-        signInWithFaceBook,
-        signInWithTwitter,
         signOut,
         resetPassword,
       }}
